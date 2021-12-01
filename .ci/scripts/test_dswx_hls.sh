@@ -18,7 +18,7 @@
 echo '
 =====================================
 
-Testing DSWx-HLS PGE docker image...
+Testing DSWx-HLS PGE Docker image...
 
 =====================================
 '
@@ -29,7 +29,7 @@ WORKSPACE=$2
 TEST_RESULTS_REL_DIR="test_results/dswx_hls"
 
 # defaults
-[ -z "${WORKSPACE}" ] && WORKSPACE=$(dirname $(realpath $0))/../../..
+[ -z "${WORKSPACE}" ] && WORKSPACE=$(realpath $(dirname $(realpath $0))/../..)
 [ -z "${TAG}" ] && TAG="${USER}-dev"
 
 echo "Test results output directory:  ${WORKSPACE}/${TEST_RESULTS_REL_DIR}"
@@ -59,9 +59,14 @@ ${DOCKER_RUN} pylint \
 
 # pytest (including code coverage)
 ${DOCKER_RUN} bash -c "pytest \
+    --junit-xml=/workspace/${TEST_RESULTS_REL_DIR}/pytest-junit.xml \
     --cov=/home/conda/opera/pge \
     --cov=/home/conda/opera/scripts \
     --cov=/home/conda/opera/util \
     --cov-report=term \
     --cov-report=html:/workspace/${TEST_RESULTS_REL_DIR}/coverage_html \
     /home/conda/opera > /workspace/${TEST_RESULTS_REL_DIR}/pytest.log 2>&1"
+
+echo "DSWx-HLS PGE Docker image test complete"
+
+exit 0
