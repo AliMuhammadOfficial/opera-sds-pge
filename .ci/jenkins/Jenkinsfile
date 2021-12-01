@@ -23,7 +23,7 @@ pipeline {
                description: 'Artifactory path to push Docker images.')
         string(name: 'ART_DOCKER_REGISTRY', defaultValue: 'artifactory-fn.jpl.nasa.gov:16001',
                description: 'Address of Artifactory-FN Docker registry for uploading Docker images.')
-        ART_CREDENTIALS = credentials (name: 'ART_CREDENTIALS',
+        credentials (name: 'ART_CREDENTIALS',
                      defaultValue: 'collinss-artifactory-fn-credentials',
                      credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl',
                      description: 'Artifactory-FN credentials for account collinss. Used to push/pull images from Artifactory during build.',
@@ -40,9 +40,19 @@ pipeline {
     stages {
         stage('Build OPERA PGE Docker image(s)') {
             steps {
-                echo "Building ${DOCKER_IMAGE_PREFIX} docker images with tag ${DOCKER_TAG}"
-                sh label: 'Build all OPERA Docker images',
-                   script: ".ci/scripts/build_all_images.sh $DOCKER_TAG"
+                script {
+                    rtServer (
+                        id: 'ARTIFACTORY_FN_DOCKER_REGISTRY',
+                        url: params.ART_DOCKER_REGISTRY,
+                        username: params.ART_CREDENTIALS_USR,
+                        password: params.ART_CREDENTIALS_PSW,
+                        timeout: 300
+                    )
+
+                    echo "Building ${DOCKER_IMAGE_PREFIX} docker images with tag ${DOCKER_TAG}"
+                    sh label: 'Build all OPERA Docker images',
+                       script: ".ci/scripts/build_all_images.sh $DOCKER_TAG"
+                }
             }
         }
         stage('Test OPERA PGE Docker image(s)') {
@@ -60,8 +70,8 @@ pipeline {
                     rtServer (
                         id: 'ARTIFACTORY_FN_SERVER',
                         url: params.ART_URL,
-                        username: $ART_CREDENTIALS_USR,
-                        password: $ART_CREDENTIALS_PSW,
+                        username: params.ART_CREDENTIALS_USR,
+                        password: params.ART_CREDENTIALS_PSW,
                         timeout: 300
                     )
 
@@ -99,8 +109,8 @@ pipeline {
                     rtServer (
                         id: 'ARTIFACTORY_FN_DOCKER_REGISTRY',
                         url: params.ART_DOCKER_REGISTRY,
-                        username: $ART_CREDENTIALS_USR,
-                        password: $ART_CREDENTIALS_PSW,
+                        username: params.ART_CREDENTIALS_USR,
+                        password: params.ART_CREDENTIALS_PSW,
                         timeout: 300
                     )
 
